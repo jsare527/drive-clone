@@ -1,0 +1,52 @@
+services:
+  postgres-db:
+    image: 'postgres:latest'
+    container_name: 'drive_postgres'
+    restart: always
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_USER: ${DB_USER}
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql
+
+  drive-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: drive-app
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/${DB_NAME}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+
+      FILE_STORAGE_TYPE: ${STORAGE_TYPE}
+      FILE_UPLOAD_DIR: /app/uploads/
+
+      AWS_S3_BUCKET_NAME: ${S3_BUCKET_NAME}
+      AWS_REGION: ${AWS_REGION}
+    
+    depends_on:
+      - postgres-db
+
+    volumes:
+      - ./local-uploads:/app/uploads
+
+  pgadmin:
+    image: 'dpage/pgadmin4'
+    container_name: 'drive-pgadmin'
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres-db
+
+volumes:
+  postgres_data:
