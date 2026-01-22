@@ -1,0 +1,32 @@
+<mat-drawer-container
+    [class.drawer-opened]="drawer.opened"
+    class="main-drawer-container">    
+    <mat-drawer #drawer
+    class="drawer"
+    mode="side"
+    opened="true">
+
+    <mat-toolbar class="side-header">
+        <div>Drive</div>
+        <button class="close-button" type="button" mat-icon-button (click)="drawer.close()">
+            <mat-icon>close</mat-icon>
+        </button>
+    </mat-toolbar>
+    <div class="side-contents">
+        Hello
+    </div>
+    </mat-drawer>
+
+    <mat-toolbar class="main-header">
+        @if(!drawer.opened) {
+            <button mat-icon-button (click)="drawer.toggle()">
+                <mat-icon>menu</mat-icon>
+            </button>
+        }
+        <div>Header</div>
+    </mat-toolbar>
+
+    <div class="main-contents">
+        <div>herro there</div>
+    </div>
+</mat-drawer-container>

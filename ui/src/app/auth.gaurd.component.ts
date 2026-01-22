@@ -6,7 +6,7 @@ export const authGaurd: CanActivateFn = (route, state) => {
     const authService = inject(AuthenticationService);
     const router = inject(Router);
 
-    if (authService.isAuthed()) {
+    if (authService.isAuthedLocal()) {
         return true;
     } else {
         router.navigate(['/login']);
