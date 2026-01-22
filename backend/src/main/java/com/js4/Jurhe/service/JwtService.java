@@ -12,7 +12,7 @@ import io.jsonwebtoken.security.Keys;
 @Service
 public class JwtService {
     private static final String SECRET = "your-very-secure-and-long-secret-key-for-jwt-token-generation";
-    private static final long EXPIRATION = 86400000; // 24 hrs
+    private static final long EXPIRATION = 3600000; // 24 hrs
 
     private final Key key = Keys.hmacShaKeyFor(SECRET.getBytes());
 

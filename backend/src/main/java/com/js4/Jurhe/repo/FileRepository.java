@@ -8,5 +8,6 @@ import com.js4.Jurhe.model.FileEntity;
 
 @Repository
 public interface FileRepository extends JpaRepository<FileEntity, Long> {
-    List<FileEntity> findAllByOwnerId(Long ownderId);
+    List<FileEntity> findByFolderId(Long folderId);
+    List<FileEntity> findByUserIdAndFolderIsNull(Long userId);
 }

@@ -17,7 +17,7 @@ public class S3StorageService implements StorageService {
     private String region;
 
     @Override
-    public String store(MultipartFile file, Long ownerId) {
+    public String store(MultipartFile file, Long ownerId, Long folderId) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'store'");
     }

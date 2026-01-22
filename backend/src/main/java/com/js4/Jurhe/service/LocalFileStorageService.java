@@ -30,7 +30,7 @@ public class LocalFileStorageService implements StorageService {
     }
 
     @Override
-    public String store(MultipartFile file, Long ownerId) {
+    public String store(MultipartFile file, Long ownerId, Long folderId) {
         String originalFileName = file.getOriginalFilename();
         String storageFileName = UUID.randomUUID().toString() + "-" + originalFileName;
 

@@ -1,5 +1,7 @@
 package com.js4.Jurhe.service;
 
+import java.security.Principal;
+
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -30,8 +32,18 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    public User findById(long userId) {
+        return userRepository.findById(userId)
+        .orElseThrow(() -> new RuntimeException("User with id not found: " + userId));
+    }
+
     public User findByUserName(String username) {
         return userRepository.findByUsername(username)
         .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+    }
+
+    public User getCurrentUser(Principal principal) {
+        final String username = principal.getName();
+        return findByUserName(username);
     }
 }
