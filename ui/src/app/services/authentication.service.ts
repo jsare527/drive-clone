@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { JwtHelperService } from '@auth0/angular-jwt';
@@ -16,13 +16,17 @@ export class AuthenticationService {
 
   login(username: string, password: string) {
     const userDto: userDto = { username, password };
+    console.log(userDto);
     return this.http.post(`${this.baseUrl}/login`, userDto).pipe(
       map((response: any) => {
         localStorage.setItem('auth_token', response.token);
         this.router.navigate(['home']);
         return true;
       }),
-      catchError(() => of(false))
+      catchError((err) => {
+        console.log(err);
+        return of(false);
+      })
     );
   }
 

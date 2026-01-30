@@ -1,0 +1,23 @@
+<app-file-explorer
+    [response]="response"
+    [path]="path"
+    [isLoading]="isLoading"
+    [downloadProgress]="downloadProgress"
+    [viewType]="'home'"
+
+    (openFolder)="onFolderOpened($event)"
+
+    (fileSelected)="onFileSelected($event)"
+    (folderSelected)="onFolderSelected($event)"
+
+    (fileDownload)="downloadFile()"
+    (folderDownload)="downloadFolder()"
+
+    (fileDelete)="onFileDelete()"
+    (folderDelete)="onFolderDelete()"
+
+    (fileMore)="onHandleFileMore($event)"
+    (folderMore)="onHandleFolderMore($event)"
+>
+
+</app-file-explorer>

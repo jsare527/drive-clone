@@ -3,6 +3,8 @@ package com.js4.Jurhe.model;
 import java.time.LocalDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.SoftDelete;
+import org.hibernate.annotations.SoftDeleteType;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -20,6 +22,7 @@ import lombok.ToString;
 @Table(name = "files")
 @Data
 @NoArgsConstructor
+@SoftDelete(strategy = SoftDeleteType.TIMESTAMP, columnName = "deleted_at")
 public class FileEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -50,8 +53,8 @@ public class FileEntity {
     @Column(updatable = false)
     private LocalDateTime uploadTime;
 
-    // Optional: Could be used for features like "deleted" or "shared" status
-    private boolean isDeleted = false;
+    @Column(name = "deleted_at", updatable = false, insertable = false)
+    private LocalDateTime deletedAt;
 
     private boolean isS3 = false;
 

@@ -1,0 +1,35 @@
+.mat-elevation-z8 {
+  width: 100%;
+  overflow: auto;
+}
+
+table {
+  width: 100%;
+}
+
+.mat-column-actions {
+  width: 80px;
+  text-align: center;
+}
+
+.mat-column-name {
+  vertical-align: middle;
+}
+
+.cell-content {
+  display: flex;
+  align-items: center;  /* This is the magic line for vertical centering */
+  gap: 8px;             /* Adds a nice space between icon and text */
+}
+
+.file-icon {
+    color: #1a73e8;
+}
+
+.folder-icon {
+    color: #5f6368;
+}
+
+mat-icon {
+  margin-right: 8px;    /* Backup spacing if you don't use gap */
+}

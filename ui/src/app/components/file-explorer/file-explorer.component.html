@@ -1,0 +1,83 @@
+<div class="page-wrapper">
+    @if (isLoading && downloadProgress > 0) {
+        <div class="download-overlay">
+            <p>Zipping and downloading... {{ downloadProgress }}%</p>
+            <mat-progress-bar mode="determinate" [value]="downloadProgress"></mat-progress-bar>
+        </div>
+    }
+
+    <div class="breadcrumbs-bar">
+        <div class="nav-group">
+            <button mat-button (click)="openFolder.emit([0, undefined])">Root</button>
+            @for(crumb of path; track crumb.id; let i = $index) {
+                <mat-icon class="separator">chevron_right</mat-icon>
+                <button mat-button (click)="openFolder.emit([crumb.id, i])">{{ crumb.name }}</button>
+            }
+        </div>
+
+        <div class="actions-group">
+            @if (viewType === 'home') {
+                <button mat-flat-button color="primary" [matMenuTriggerFor]="uploadMenu">
+                    <mat-icon>upload</mat-icon> Upload
+                </button>
+                <mat-menu #uploadMenu="matMenu">
+                    <button mat-menu-item (click)="fileInput.click()"><mat-icon>insert_drive_file</mat-icon><span>File</span></button>
+                    <button mat-menu-item (click)="folderInput.click()"><mat-icon>folder_zip</mat-icon><span>Folder</span></button>
+                </mat-menu>
+            } @else {
+                <!-- <button mat-stroked-button color="warn" (click)="emptyTrash.emit()">
+                    <mat-icon>delete_sweep</mat-icon> Empty Trash
+                </button> -->
+            }
+            
+            <input type="file" #fileInput style="display: none" (change)="fileSelected.emit($event)" multiple />
+            <input type="file" #folderInput style="display: none" (change)="folderSelected.emit($event)" webkitdirectory />
+        </div>
+    </div>
+
+    <div class="item-grid">
+        @for(subFolder of response?.subFolders; track subFolder.id) {
+            <div class="item-container">
+                <button mat-icon-button class="large-item-btn folder" (dblclick)="openFolder.emit([subFolder.id, undefined, subFolder.name])">
+                    <mat-icon>folder</mat-icon>
+                </button>
+                <span class="item-label">{{ subFolder.name }}</span>
+                <button mat-icon-button class="more-actions-btn" [matMenuTriggerFor]="folderMenu" (click)="folderMore.emit([$event, subFolder])">
+                    <mat-icon>more_horiz</mat-icon>
+                </button>
+            </div>
+        }
+
+        @for(file of response?.files; track file.id) {
+            <div class="item-container">
+                <button mat-icon-button class="large-item-btn">
+                    <mat-icon class="file-icon">{{ imageTypes.includes(file.contentType) ? 'image' : 'text_snippet' }}</mat-icon>
+                </button>
+                <span class="item-label">{{ file.fileName }}</span>
+                <button mat-icon-button class="more-actions-btn" [matMenuTriggerFor]="fileMenu" (click)="fileMore.emit([$event, file])">
+                    <mat-icon>more_horiz</mat-icon>
+                </button>
+            </div>
+        }
+
+        <mat-menu #fileMenu="matMenu">
+            @if (viewType === 'home') {
+                <button mat-menu-item (click)="fileDownload.emit()"><mat-icon>download</mat-icon><span>Download</span></button>
+                <button mat-menu-item (click)="fileDelete.emit()" class="text-danger"><mat-icon color="warn">delete</mat-icon><span>Move to Trash</span></button>
+            } @else {
+                <!-- <button mat-menu-item (click)="fileRestore.emit()"><mat-icon>restore</mat-icon><span>Restore</span></button> -->
+                <button mat-menu-item (click)="fileDelete.emit()" class="text-danger"><mat-icon color="warn">delete_forever</mat-icon><span>Delete Permanently</span></button>
+            }
+        </mat-menu>
+
+        <mat-menu #folderMenu="matMenu">
+             @if (viewType === 'home') {
+                <button mat-menu-item (click)="folderDownload.emit()"><mat-icon>download</mat-icon><span>Download</span></button>
+                <button mat-menu-item (click)="folderDelete.emit()" class="text-danger"><mat-icon color="warn">delete</mat-icon><span>Move to Trash</span></button>
+            } @else {
+                <!-- <button mat-menu-item (click)="folderRestore.emit()"><mat-icon>restore</mat-icon><span>Restore</span></button> -->
+                <button mat-menu-item (click)="folderDelete.emit()" class="text-danger"><mat-icon color="warn">delete_forever</mat-icon><span>Delete Permanently</span></button>
+            }
+        </mat-menu>
+    </div>
+</div>

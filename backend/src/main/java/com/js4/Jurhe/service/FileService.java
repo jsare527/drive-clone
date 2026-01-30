@@ -1,17 +1,13 @@
 package com.js4.Jurhe.service;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.js4.Jurhe.dto.FileDTO;
-import com.js4.Jurhe.dto.FolderDTO;
 import com.js4.Jurhe.mapper.FileMapper;
-import com.js4.Jurhe.mapper.FolderMapper;
 import com.js4.Jurhe.model.FileEntity;
 import com.js4.Jurhe.model.FolderEntity;
 import com.js4.Jurhe.model.User;
@@ -35,7 +31,7 @@ public class FileService {
     }
 
     public FileDTO storeFile(MultipartFile file, Long ownerId, Long folderId) {
-        final String storagePath = storageService.store(file, ownerId, null);
+        final String storagePath = storageService.store(file);
         final User user = userService.findById(ownerId);
 
         FileEntity fileEntity = new FileEntity();
@@ -55,5 +51,45 @@ public class FileService {
 
         final FileEntity savedFile = fileRepository.save(fileEntity);
         return fileMapper.toDto(savedFile);
+    }
+
+    public int storeFiles(MultipartFile[] files, Long userId, Long folderId) {
+        final List<FileEntity> fileEntities = new ArrayList<>();
+        final User user = userService.findById(userId);
+        FolderEntity parent = null;
+
+        if (folderId != 0) {
+            parent = folderRepository.findById(folderId)
+            .orElseThrow(() -> new RuntimeException("Parent folder not found"));
+        } 
+
+        for (final MultipartFile file : files) {
+            FileEntity fileEntity = new FileEntity();
+
+            final String storagePath = storageService.store(file);
+            fileEntity.setFileName(file.getOriginalFilename());
+            fileEntity.setContentType(file.getContentType());
+            fileEntity.setSize(file.getSize());
+            fileEntity.setStoragePath(storagePath);
+            fileEntity.setUser(user);
+            fileEntity.setFolder(parent);
+            fileEntities.add(fileEntity);
+        }
+
+        fileRepository.saveAll(fileEntities);
+        return fileEntities.size();
+    }
+
+    public FileEntity getFile(Long fileId) {
+        return fileRepository.findById(fileId).orElseThrow();
+    }
+
+    public boolean deleteFile(Long fileId) {
+        try {
+            fileRepository.deleteById(fileId);
+            return true;
+        } catch (IllegalArgumentException ex) {
+            return false;
+        }
     }
 }

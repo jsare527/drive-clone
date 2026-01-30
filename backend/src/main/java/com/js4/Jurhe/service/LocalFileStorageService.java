@@ -30,7 +30,7 @@ public class LocalFileStorageService implements StorageService {
     }
 
     @Override
-    public String store(MultipartFile file, Long ownerId, Long folderId) {
+    public String store(MultipartFile file) {
         String originalFileName = file.getOriginalFilename();
         String storageFileName = UUID.randomUUID().toString() + "-" + originalFileName;
 
@@ -45,13 +45,16 @@ public class LocalFileStorageService implements StorageService {
 
     @Override
     public Resource loadAsResource(String storagePath) {
-        return resourceLoader.getResource(storagePath);
+        return resourceLoader.getResource("file:" + storagePath);
     }
 
     @Override
     public void delete(String storagePath) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'delete'");
+        try {
+            Files.deleteIfExists(this.rootLocation.resolve(storagePath));
+        } catch (IOException ex) {
+            throw new RuntimeException("Could not delete file: " + storagePath, ex);
+        }
     }
     
 }

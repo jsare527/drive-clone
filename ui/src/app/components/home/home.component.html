@@ -1,1 +1,105 @@
-<app-top-side-nav>
+<div class="page-wrapper">
+    @if (isLoading && downloadProgress > 0) {
+        <div class="download-overlay">
+            <p>Zipping and downloading... {{ downloadProgress }}%</p>
+            <mat-progress-bar mode="determinate" [value]="downloadProgress"></mat-progress-bar>
+        </div>
+    }
+    <div class="breadcrumbs-bar">
+        <div class="nav-group">
+            <button mat-button (click)="openFolder(0)">
+            Root
+            </button>
+            
+            @for(crumb of path; track crumb.id; let i = $index) {
+            <mat-icon class="separator">chevron_right</mat-icon>
+            <button mat-button (click)="openFolder(crumb.id, undefined, i)">
+                {{ crumb.name }}
+            </button>
+            }
+        </div>
+
+        <div class="actions-group">
+            <button mat-flat-button color="primary" [matMenuTriggerFor]="uploadMenu">
+                <mat-icon>upload</mat-icon>
+                Upload
+            </button>
+
+            <mat-menu #uploadMenu="matMenu">
+                <button mat-menu-item (click)="fileInput.click()">
+                <mat-icon>insert_drive_file</mat-icon>
+                <span>File Upload</span>
+                </button>
+                <button mat-menu-item (click)="folderInput.click()">
+                <mat-icon>folder_zip</mat-icon>
+                <span>Folder Upload</span>
+                </button>
+            </mat-menu>
+
+            <input type="file" #fileInput style="display: none" (change)="onFileSelected($event)" multiple />
+            <input type="file" #folderInput style="display: none" (change)="onFolderSelected($event)" webkitdirectory />
+        </div>
+    </div>
+
+    <div class="item-grid">
+        @for(subFolder of response?.subFolders; track subFolder.id) {
+            <div class="item-container">
+                <button mat-icon-button class="large-item-btn folder" (dblclick)="openFolder(subFolder.id, subFolder.name)">
+                    <mat-icon>folder</mat-icon>
+                </button>
+                <span class="item-label">{{ subFolder.name }}</span>
+
+                <button mat-icon-button class="more-actions-btn" [matMenuTriggerFor]="folderMenu" (click)="handleFolderMore($event, subFolder)" [disableRipple]="true">
+                    <mat-icon>more_horiz</mat-icon>
+                </button>
+            </div>
+        }
+
+        @for(file of response?.files; track file.id) {
+            <div class="item-container">
+                <button mat-icon-button class="large-item-btn">
+                    @if(this.imageTypes.includes(file.contentType)) {
+                        <mat-icon class="file-icon">image</mat-icon>
+                    } @else {
+                        <mat-icon class="file-icon">text_snippet</mat-icon>
+                    }
+                </button>
+                <span class="item-label">{{ file.fileName }}</span>
+
+                <button mat-icon-button class="more-actions-btn" [matMenuTriggerFor]="fileMenu" (click)="handleFileMore($event, file)" [disableRipple]="true">
+                    <mat-icon>more_horiz</mat-icon>
+                </button>
+            </div>
+        }
+
+            <mat-menu #fileMenu="matMenu">
+                <button mat-menu-item (click)="downloadFile()">
+                    <mat-icon>download</mat-icon>
+                    <span>Download</span>
+                </button>
+                <button mat-menu-item>
+                    <mat-icon>content_copy</mat-icon>
+                    <span>Copy</span>
+                </button>
+                <button mat-menu-item class="text-danger" (click)="onFileDelete()">
+                    <mat-icon color="warn">delete</mat-icon>
+                    <span>Delete</span>
+                </button>
+            </mat-menu>
+
+            <mat-menu #folderMenu="matMenu">
+                <button mat-menu-item (click)="downloadFolder()">
+                    <mat-icon>download</mat-icon>
+                    <span>Download</span>
+                </button>
+                <button mat-menu-item>
+                    <mat-icon>content_copy</mat-icon>
+                    <span>Copy</span>
+                </button>
+                <button mat-menu-item class="text-danger" (click)="onFolderDelete()">
+                    <mat-icon color="warn">delete</mat-icon>
+                    <span>Delete</span>
+                </button>
+            </mat-menu>
+    </div>
+</div>

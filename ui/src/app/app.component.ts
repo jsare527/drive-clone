@@ -2,11 +2,12 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 import { AuthenticationService } from './services/authentication.service';
 import { catchError, map, Subscription, tap } from 'rxjs';
+import { TopSideNavComponent } from "./components/top-side-nav/top-side-nav.component";
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, TopSideNavComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })

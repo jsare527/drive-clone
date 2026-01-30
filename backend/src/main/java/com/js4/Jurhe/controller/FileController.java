@@ -1,9 +1,10 @@
 package com.js4.Jurhe.controller;
 
+import java.io.IOException;
 import java.security.Principal;
-import java.util.List;
-import java.util.Map;
 
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -15,11 +16,10 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.js4.Jurhe.dto.FileDTO;
-import com.js4.Jurhe.dto.FolderDTO;
-import com.js4.Jurhe.dto.FolderResponse;
+import com.js4.Jurhe.model.FileEntity;
 import com.js4.Jurhe.model.User;
 import com.js4.Jurhe.service.FileService;
-import com.js4.Jurhe.service.FolderService;
+import com.js4.Jurhe.service.StorageService;
 import com.js4.Jurhe.service.UserService;
 
 @RestController
@@ -27,12 +27,12 @@ import com.js4.Jurhe.service.UserService;
 public class FileController {
     private final FileService fileService;
     private final UserService userService;
-    private final FolderService folderService;
+    private final StorageService storageService;
 
-    public FileController(FileService fileService, UserService userService, FolderService folderService) {
+    public FileController(FileService fileService, UserService userService, StorageService storageService) {
         this.fileService = fileService;
         this.userService = userService;
-        this.folderService = folderService;
+        this.storageService = storageService;
     }
 
     @PostMapping(value = "/uploadFile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -42,18 +42,29 @@ public class FileController {
         return new ResponseEntity<>(savedFile, HttpStatus.CREATED);
     }
 
-    @PostMapping(value = "/createFolder")
-    public ResponseEntity<FolderDTO> createFolder(@RequestParam String name, @RequestParam(required = false) Long folderId, Principal principal) {
+    @PostMapping(value = "/uploadFiles")
+    public ResponseEntity<?> uploadFiles(@RequestParam("folderId") Long folderId, @RequestParam("files") MultipartFile[] files, Principal principal) {
         final User user = userService.getCurrentUser(principal);
-        final FolderDTO folder = folderService.createFolder(name, user.getId(), folderId);
-        return ResponseEntity.ok(folder);
+        final int fileCount = fileService.storeFiles(files, user.getId(), folderId);
+        return ResponseEntity.ok(fileCount);
     }
 
+    @GetMapping(value = "/downloadFile")
+    public ResponseEntity<Resource> downloadFile(@RequestParam("fileId") Long fileId) throws IOException {
+        final FileEntity fileEntity = fileService.getFile(fileId);
+        final Resource resource = storageService.loadAsResource(fileEntity.getStoragePath());
+        return ResponseEntity.ok()
+        .contentType(MediaType.parseMediaType(fileEntity.getContentType()))
+        .contentLength(resource.contentLength())
+        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileEntity.getFileName() + "\"")
+        .body(resource);
+    }
 
-    @GetMapping
-    public ResponseEntity<FolderResponse> getContents(@RequestParam(required = false) Long folderId, Principal principal) {
-        final User user = userService.getCurrentUser(principal);
-        final FolderResponse response = folderService.getFolderContents(user.getId(), folderId);
-        return ResponseEntity.ok(response);
+    @PostMapping(value = "/deleteFile")
+    public ResponseEntity<?> deleteFile(@RequestParam("fileId") Long fileId) {
+        if (fileId != 0 && fileService.deleteFile(fileId)) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.internalServerError().build();
     }
 }
