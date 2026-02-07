@@ -19,4 +19,8 @@ export class TrashService {
 
     return this.http.get<PageResponse<TrashDTO>>(`${this.baseUrl}/trash`, { params });
   }
+
+  deleteFolderForever(folderId: number) {
+    return this.http.delete(`${this.baseUrl}/folder/${folderId}`);
+  }
 }

@@ -16,8 +16,23 @@ export class AuthenticationService {
 
   login(username: string, password: string) {
     const userDto: userDto = { username, password };
-    console.log(userDto);
     return this.http.post(`${this.baseUrl}/login`, userDto).pipe(
+      map((response: any) => {
+        localStorage.setItem('auth_token', response.token);
+        this.router.navigate(['home']);
+        return true;
+      }),
+      catchError((err) => {
+        console.log(err);
+        return of(false);
+      })
+    );
+  }
+
+  register(username: string, password: string) {
+    const userDto: userDto = { username, password };
+    return this.http.post(`${this.baseUrl}/register`, userDto)
+    .pipe(
       map((response: any) => {
         localStorage.setItem('auth_token', response.token);
         this.router.navigate(['home']);

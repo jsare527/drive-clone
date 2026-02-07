@@ -41,7 +41,7 @@ public class AuthController {
             response.put("message", "User registered and logged in");
             return ResponseEntity.ok(response);
         } catch (RuntimeException ex) {
-            return ResponseEntity.badRequest().body(ex.getMessage());
+            return ResponseEntity.badRequest().body("User already exists");
         }
     }
 

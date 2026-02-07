@@ -1,9 +1,8 @@
-import { Component, OnDestroy } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, DestroyRef, inject } from '@angular/core';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthenticationService } from '../../services/authentication.service';
-import { Router } from '@angular/router';
-import { Subscription } from 'rxjs';
 import { userDto, userFormDto } from '../../models/userDto';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-login',
@@ -12,34 +11,48 @@ import { userDto, userFormDto } from '../../models/userDto';
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss'
 })
-export class LoginComponent implements OnDestroy {
+export class LoginComponent {
   loginForm: FormGroup<userFormDto>;
-  subscriptions = new Subscription();
+  destroyRef = inject(DestroyRef);
+  isLoginMode: boolean = true;
   error = '';
 
-  constructor(private fb: FormBuilder, private readonly authService: AuthenticationService, private readonly router: Router) {
+  constructor(private readonly authService: AuthenticationService) {
     this.loginForm = new FormGroup<userFormDto>({
       username: new FormControl('', Validators.required),
       password: new FormControl('', Validators.required),
     })
   }
 
-
-  ngOnDestroy(): void {
-    this.subscriptions.unsubscribe();
-  }
-
-  onSubmit() {
-    this.error = '';
-    const username = this.loginForm.controls.username.value!;
-    const password = this.loginForm.controls.password.value!;
+  onLogin() {
+    const userDto: userDto = this.getFormData();
 
     localStorage.removeItem('auth_token');
-    this.subscriptions.add(
-      this.authService.login(username, password).subscribe(success => {
-        if (!success) this.error = 'Invalid credentials';
-      })
-    );
+    this.authService.login(userDto.username, userDto.password)
+    .pipe(takeUntilDestroyed(this.destroyRef))
+    .subscribe(success => {
+      if (!success) this.error = 'Invalid credentials';
+    });
+  }
+
+  onRegister() {
+    const userDto: userDto = this.getFormData();
+
+    localStorage.removeItem('auth_token');
+    this.authService.register(userDto.username, userDto.password)
+    .pipe(takeUntilDestroyed(this.destroyRef))
+    .subscribe(success => {
+      if (!success) this.error = 'Username already taken';
+    });
+  }
+
+  switchModes() {
+    this.isLoginMode = !this.isLoginMode;
+  }
+
+  getFormData(): userDto {
+    this.error = '';
+    return { username: this.loginForm.controls.username.value!, password: this.loginForm.controls.password.value! };
   }
 
 }

@@ -17,6 +17,19 @@
   max-width: 400px;
 }
 
+.link {
+  text-decoration: underline;
+  color: blue;
+  cursor: pointer;
+}
+
+.header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 15px;
+}
+
 .form-group {
   margin-bottom: 1.5rem;
   display: flex;

@@ -1,4 +1,8 @@
 <form [formGroup]="loginForm" class="login-container">
+    <h3 class="header">
+        {{ this.isLoginMode ? 'Login' : 'Register' }}
+    </h3>
+
     <div class="form-group">
         <label for="username">Username</label>
         <input 
@@ -15,7 +19,7 @@
     <div class="form-group">
         <label for="password">Password</label>
         <input 
-        type="text"
+        type="password"
         id="password"
         [formControl]="loginForm.controls.password"
         [class.invalid]="loginForm.controls.password.invalid && loginForm.controls.password.touched"/>
@@ -25,7 +29,19 @@
         }
     </div>
 
-    <button [disabled]="loginForm.invalid" (click)="onSubmit()">Login</button>
+    <div class="login-footer">
+        @if(this.isLoginMode) {
+            <button [disabled]="loginForm.invalid" (click)="onLogin()">Login</button>
+            <div style="text-align: center;">
+                Need an account? <a class="link" (click)="switchModes()"> Register</a>
+            </div>
+        } @else {
+            <button [disabled]="loginForm.invalid" (click)="onRegister()">Register</button>
+            <div style="text-align: center;">
+                Have an account? <a class="link" (click)="switchModes()"> Login</a>
+            </div>
+        }
+    </div>
 </form>
 
 @if(error) {

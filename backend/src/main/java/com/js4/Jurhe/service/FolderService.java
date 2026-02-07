@@ -10,7 +10,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
@@ -37,10 +36,11 @@ public class FolderService {
     private final FolderMapper folderMapper;
     private final FileService fileService;
     private final StorageService storageService;
+    private final FileExplorerService fileExplorerService;
 
     public FolderService(FolderRepository folderRepository, UserService userService, FolderMapper folderMapper, 
         FileRepository fileRepository, FolderResponseMapper folderResponseMapper, FileService fileService,
-        StorageService storageService
+        StorageService storageService, FileExplorerService fileExplorerService
     ) {
         this.folderRepository = folderRepository;
         this.userService = userService;
@@ -49,6 +49,7 @@ public class FolderService {
         this.folderResponseMapper = folderResponseMapper;
         this.fileService = fileService;
         this.storageService = storageService;
+        this.fileExplorerService = fileExplorerService;
     }
 
 
@@ -71,12 +72,12 @@ public class FolderService {
     }
 
     public int createLinkedFolders(Long folderId, String[] relativePaths, MultipartFile[] files, Long userId) {
-        int foldersCreated = 1;
         final Map<String, FolderDTO> map = new HashMap<>();
         final String initialName = relativePaths[0].split("/")[0];
         final FolderDTO parent = folderId == 0 ? createFolder(initialName, userId, null) 
                                                : createFolder(initialName, userId, folderId);
         map.put(initialName, parent);
+        int foldersCreated = 1;
 
         for (int i = 0; i < relativePaths.length; i++) {
             final String[] splitPath = relativePaths[i].split("/");
@@ -117,7 +118,6 @@ public class FolderService {
 
     public FolderResponse getTrashContents(Long userId) {
         final List<FolderEntity> subFolders = folderRepository.findTrashFolders(userId);
-        System.out.println(subFolders);
         final List<FileEntity> files = fileRepository.findTrashFiles(userId);
         return folderResponseMapper.toFolderResponse(null, subFolders, files);
     }
@@ -126,9 +126,10 @@ public class FolderService {
         final List<FolderEntity> subFolders = folderRepository.findTrashFolders(userId);
         final List<FileEntity> files = fileRepository.findTrashFiles(userId);
         final List<TrashDTO> allTrash = new ArrayList<>();
+        final Map<Long, String> fileMap = new HashMap<>();
 
         subFolders.forEach(fo -> {
-            final String originalPath = fo.getParentFolder() != null ? fo.getParentFolder().getName() : "Root";
+            final String originalPath = fo.getParentFolder() != null ? fileExplorerService.resolveTrashFolderPath(fo, false) : "../";
             allTrash.add(new TrashDTO(
                 fo.getId(),
                 fo.getName(),
@@ -139,7 +140,18 @@ public class FolderService {
         });
 
         files.forEach(fi -> {
-            final String originalPath = fi.getFolder() != null ? fi.getFolder().getName() : "Root";
+            String originalPath = "../";
+            if (fi.getFolder() != null) {
+                final FolderEntity folder = fi.getFolder();
+                final long folderId = folder.getId();
+                if (fileMap.containsKey(folderId)) {
+                    originalPath = fileMap.get(folderId);
+                    System.out.println("Found cached path for: " + fi.getFileName());
+                } else {
+                    originalPath = fileExplorerService.resolveTrashFolderPath(folder, true);
+                    fileMap.put(folderId, originalPath);
+                } 
+            }
             allTrash.add(new TrashDTO(
                 fi.getId(),
                 fi.getFileName(),
@@ -205,5 +217,19 @@ public class FolderService {
         }
         
         folderRepository.deleteById(folderId);
+    }
+
+    @Transactional
+    public void deleteFolderForever(Long folderId, Long userId) {
+        // have to fix fk contraints
+        final FolderEntity parent = folderRepository.findTrashFolderById(folderId, userId)
+        .orElseThrow(() -> new RuntimeException("Folder not found"));
+
+        fileRepository.deleteForeverByFolderId(folderId);
+        for (FolderEntity subFolder : parent.getSubFolders()) {
+            deleteFolderForever(subFolder.getId(), userId);
+        }
+
+        folderRepository.deleteFolderForeverById(folderId);
     }
 }

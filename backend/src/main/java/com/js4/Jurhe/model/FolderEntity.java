@@ -9,6 +9,7 @@ import org.hibernate.annotations.SoftDeleteType;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -46,7 +47,7 @@ public class FolderEntity {
     @ToString.Exclude
     private FolderEntity parentFolder;
 
-    @OneToMany(mappedBy = "parentFolder")
+    @OneToMany(mappedBy = "parentFolder", cascade = CascadeType.ALL)
     @JsonIgnore
     private List<FolderEntity> subFolders = new ArrayList<>();
 
