@@ -36,7 +36,7 @@
               <mat-icon>more_horiz</mat-icon>
             </button>
             <mat-menu #restoreMenu="matMenu">
-              <button mat-menu-item><mat-icon>restore</mat-icon><span>Restore</span></button>
+              <button mat-menu-item (click)="restore(item)"><mat-icon>restore</mat-icon><span>Restore</span></button>
               <button mat-menu-item (click)="deleteForever(item)"><mat-icon color="warn">delete_forever</mat-icon><span>Delete Forever</span></button>
             </mat-menu>
         </td>

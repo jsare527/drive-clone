@@ -39,4 +39,15 @@ public interface FolderRepository extends JpaRepository<FolderEntity, Long> {
     @Modifying
     @Query(value = "DELETE FROM folders WHERE id = :folderId", nativeQuery = true)
     void deleteFolderForeverById(@Param("folderId") Long folderId);
+
+    @Modifying
+    @Query(value = "UPDATE folders SET deleted_at = NULL WHERE id = :folderId", nativeQuery = true)
+    void restoreById(@Param("folderId") Long folderId);
+
+    @Query(value = "SELECT id FROM folders WHERE parent_folder_id = :folderId", nativeQuery = true)
+    List<Long> getSubFolderIds(@Param("folderId") Long folderId);
+
+    @Modifying
+    @Query(value = "UPDATE folders SET deleted_at = NULL WHERE id IN :ids", nativeQuery = true)
+    void bulkRestoreFolders(@Param("ids") List<Long> ids);
 }

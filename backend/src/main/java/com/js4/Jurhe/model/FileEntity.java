@@ -3,6 +3,8 @@ package com.js4.Jurhe.model;
 import java.time.LocalDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.SoftDelete;
 import org.hibernate.annotations.SoftDeleteType;
 
@@ -60,6 +62,7 @@ public class FileEntity {
 
     @ManyToOne
     @JoinColumn(name = "folder_id", nullable = true)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @ToString.Exclude
     private FolderEntity folder;
 }

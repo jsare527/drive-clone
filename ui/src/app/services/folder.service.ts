@@ -19,6 +19,15 @@ export class FolderService {
     return this.http.get<FolderResponse>(`${this.baseUrl}?folderId=${folderId}`);
   }
 
+  searchFolder(folderId: number, query: string) {
+    const formData = new FormData();
+    formData.append("query", query);
+    if (folderId === 0) return this.http.post<FolderResponse>(`${this.baseUrl}/search`, formData);
+
+    formData.append("folderId", folderId.toString());
+    return this.http.post<FolderResponse>(`${this.baseUrl}/search`, formData);
+  }
+
   downloadFolder(folderId: number) {
     return this.http.get(`${this.baseUrl}/downloadFolder?folderId=${folderId}`, {
       responseType: 'blob',

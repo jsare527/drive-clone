@@ -3,6 +3,7 @@
   grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
   gap: 20px;
   animation: fadeIn 0.3s ease-in;
+  margin-bottom: 10px;
 }
 
 .item-container {
@@ -58,6 +59,14 @@
 .nav-group, .actions-group {
   display: flex;
   align-items: center;
+}
+
+.searchField {
+  margin-bottom: -1.25rem;
+}
+
+.actions-group {
+  gap: 16px;
 }
 
 .separator {

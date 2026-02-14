@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.js4.Jurhe.dto.FileDTO;
@@ -91,5 +92,17 @@ public class FileService {
         } catch (IllegalArgumentException ex) {
             return false;
         }
+    }
+
+    @Transactional
+    public void deleteFileForever(Long fileId, Long userId) {
+        final FileEntity file = fileRepository.findTrashFileById(fileId, userId).orElseThrow();
+        storageService.delete(file.getStoragePath());
+        fileRepository.deleteFileForeverById(fileId);
+    }
+
+    @Transactional
+    public void restoreFile(Long fileId) {
+        fileRepository.restoreFileById(fileId);
     }
 }

@@ -38,26 +38,9 @@ public class FileExplorerService {
             files = fileRepository.searchFilesByFolder(userId, currentFolderId, query);
             folders = folderRepository.searchSubFolders(userId, currentFolderId, query);
         }
-
+        
         return folderResponseMapper.toFolderResponse(currentFolder, folders, files);
     }
-
-    // public String resolveTrashFolderPath(Long folderId, Long userId) {
-    //     FolderEntity currentFolder = folderRepository.findTrashFolderById(folderId, userId).orElse(null);
-    //     final StringBuilder sb = new StringBuilder("../");
-    //     if (currentFolder == null) return sb.toString();
-
-    //     final List<String> folderNames = new ArrayList<>();
-    //     folderNames.add(currentFolder.getName());
-
-    //     while (currentFolder.getParentFolder() != null) {
-    //         currentFolder = currentFolder.getParentFolder();
-    //         folderNames.add(currentFolder.getName());
-    //     }
-
-    //     sb.append(String.join("/", folderNames.reversed()));
-    //     return sb.toString();
-    // }
 
     public String resolveTrashFolderPath(FolderEntity folderEntity, boolean isFile) {
         FolderEntity current = folderEntity;

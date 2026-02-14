@@ -13,7 +13,7 @@ export const routes: Routes = [
         path: '',
         component: TopSideNavComponent,
         children: [
-            { path: 'home', component: MainComponent, canActivate: [authGaurd] },
+            { path: 'home', component: HomeComponent, canActivate: [authGaurd] },
             { path: 'trash', component: TrashComponent, canActivate: [authGaurd]}
         ]
     },

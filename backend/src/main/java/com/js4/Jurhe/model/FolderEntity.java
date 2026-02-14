@@ -4,12 +4,13 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.SoftDelete;
 import org.hibernate.annotations.SoftDeleteType;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -44,10 +45,11 @@ public class FolderEntity {
 
     @ManyToOne
     @JoinColumn(name = "parent_folder_id")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @ToString.Exclude
     private FolderEntity parentFolder;
 
-    @OneToMany(mappedBy = "parentFolder", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "parentFolder")
     @JsonIgnore
     private List<FolderEntity> subFolders = new ArrayList<>();
 

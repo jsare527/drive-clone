@@ -1,6 +1,6 @@
 import { Component, DestroyRef, inject, OnDestroy, OnInit } from '@angular/core';
 import { FileService } from '../../services/file.service';
-import { from, Subscription } from 'rxjs';
+import { debounceTime, distinctUntilChanged, from, Subject, Subscription, switchMap } from 'rxjs';
 import { FileDTO, FolderDTO, FolderResponse } from '../../models/folder';
 import { MatIcon } from "@angular/material/icon";
 import { MatButtonModule } from "@angular/material/button";
@@ -9,20 +9,24 @@ import { FolderService } from '../../services/folder.service';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import { HttpEventType } from '@angular/common/http';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatFormFieldModule } from "@angular/material/form-field";
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { MatInputModule } from '@angular/material/input';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [MatIcon, MatButtonModule, MatMenu, MatMenuTrigger, MatMenuItem, MatProgressBarModule],
+  imports: [MatIcon, MatButtonModule, MatMenu, MatMenuTrigger, MatMenuItem, MatProgressBarModule, MatFormFieldModule, ReactiveFormsModule, MatInputModule],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
-export class HomeComponent implements OnInit, OnDestroy {
+export class HomeComponent implements OnInit {
 
   constructor(private fileService: FileService, private folderService: FolderService) {}
   private destroyRef = inject(DestroyRef);
+  private searchSubject = new Subject<string>();
+  searchControl = new FormControl('');
 
-  subscriptions = new Subscription();
   response: FolderResponse | null = null;
   path: any[] = [];
   imageTypes: string[] = ['image/png', 'image/jpeg', 'image/gif', 'image/svg+xml'];
@@ -32,13 +36,26 @@ export class HomeComponent implements OnInit, OnDestroy {
   downloadProgress: number = 0;
 
   ngOnInit(): void {
-    this.subscriptions.add(
-      this.folderService.getFolder(0).subscribe(data => this.response = data)
-    );
-  }
+    this.searchControl.valueChanges.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      switchMap(term => {
+        const currentFolderId = this.getCurrentFolderId();
+        if (term && term.trim()) {
+          return this.folderService.searchFolder(currentFolderId, term);
+        } else {
+          return this.folderService.getFolder(currentFolderId);
+        }
+      }),
+      takeUntilDestroyed(this.destroyRef)
+    )
+    .subscribe(data => this.response = data);
 
-  ngOnDestroy(): void {
-    this.subscriptions.unsubscribe();
+    this.folderService.getFolder(0)
+    .pipe(takeUntilDestroyed(this.destroyRef))
+    .subscribe(data => this.response = data);
+
+    this.searchSubject.next('');
   }
 
   onFileSelected(event: any) {
@@ -89,6 +106,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   openFolder(folderId: number, folderName?: string, index?: number) {
     if (this.isLoading) return;
     this.isLoading = true;
+    this.searchControl.setValue('');
 
     this.folderService.getFolder(folderId)
     .pipe(takeUntilDestroyed(this.destroyRef))

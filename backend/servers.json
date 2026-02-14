@@ -1,0 +1,14 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "Local Postgres",
+      "Group": "Servers",
+      "Host": "postgres-db",
+      "Port": 5432,
+      "MaintenanceDB": "drive_db",
+      "Username": "drive_user",
+      "Password": "password123",
+      "SSLMode": "prefer"
+    }
+  }
+}

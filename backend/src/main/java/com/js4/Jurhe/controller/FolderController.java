@@ -22,6 +22,7 @@ import com.js4.Jurhe.dto.FolderDTO;
 import com.js4.Jurhe.dto.FolderResponse;
 import com.js4.Jurhe.dto.TrashDTO;
 import com.js4.Jurhe.model.User;
+import com.js4.Jurhe.service.FileExplorerService;
 import com.js4.Jurhe.service.FolderService;
 import com.js4.Jurhe.service.UserService;
 
@@ -32,11 +33,13 @@ import jakarta.servlet.http.HttpServletResponse;
 public class FolderController {
     private final FolderService folderService;
     private final UserService userService;
+    private final FileExplorerService fileExplorerService;
     
 
-    public FolderController(FolderService folderService, UserService userService) {
+    public FolderController(FolderService folderService, UserService userService, FileExplorerService fileExplorerService) {
         this.folderService = folderService;
         this.userService = userService;
+        this.fileExplorerService = fileExplorerService;
     }
 
     @PostMapping(value = "/createFolder")
@@ -78,6 +81,16 @@ public class FolderController {
         }
     }
 
+    @GetMapping("/restore/{id}")
+    public ResponseEntity<?> restoreFolder(@PathVariable("id") Long folderId) {
+        try {
+            folderService.restoreFolder(folderId);
+            return ResponseEntity.ok().build();
+        } catch (Exception ex) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
     @DeleteMapping("/folder/{id}")
     public ResponseEntity<?> deleteFolderForever(@PathVariable("id") Long folderId, Principal principal) {
         final User user = userService.getCurrentUser(principal);
@@ -102,6 +115,13 @@ public class FolderController {
         Pageable pageable = PageRequest.of(page, size);
         Page<TrashDTO> trashPage = folderService.getTrashPaginated(user.getId(), pageable);
         return ResponseEntity.ok(trashPage);
+    }
+
+    @PostMapping("/search")
+    public ResponseEntity<FolderResponse> searchFolder(@RequestParam(required = false) Long folderId, @RequestParam("query") String query, Principal principal) {
+        final User user = userService.getCurrentUser(principal);
+        final FolderResponse response = fileExplorerService.search(user.getId(), folderId, query);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping

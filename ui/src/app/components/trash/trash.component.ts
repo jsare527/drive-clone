@@ -56,6 +56,43 @@ export class TrashComponent implements OnInit {
           console.log(err);
         }
       })
+    } else if (item.type === 'file') {
+      this.trashService.deleteFileForever(item.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.loadTrash(this.pageIndex, this.pageSize);
+        },
+        error: (err) => {
+          console.log(err);
+        }
+      })
+    }
+  }
+
+  restore(item: TrashDTO) {
+    if (item.type === 'folder') {
+      this.trashService.restoreFolder(item.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.loadTrash(this.pageIndex, this.pageSize);
+        },
+        error: (err) => {
+          console.log(err);
+        }
+      })
+    } else if (item.type === 'file') {
+      this.trashService.restoreFile(item.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.loadTrash(this.pageIndex, this.pageSize);
+        },
+        error: (err) => {
+          console.log(err);
+        }
+      })
     }
   }
 }

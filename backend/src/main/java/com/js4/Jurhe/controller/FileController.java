@@ -8,7 +8,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -66,5 +68,26 @@ public class FileController {
             return ResponseEntity.noContent().build();
         }
         return ResponseEntity.internalServerError().build();
+    }
+
+    @DeleteMapping("/file/{id}")
+    public ResponseEntity<?> deleteFileForever(@PathVariable("id") Long fileId, Principal principal) {
+        final User user = userService.getCurrentUser(principal);
+        try {
+            fileService.deleteFileForever(fileId, user.getId());
+            return ResponseEntity.noContent().build();
+        } catch (Exception ex) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @GetMapping("/restore/{id}")
+    public ResponseEntity<?> restoreFile(@PathVariable("id") Long fileId) {
+        try {
+            fileService.restoreFile(fileId);
+            return ResponseEntity.ok().build();
+        } catch (Exception ex) {
+            return ResponseEntity.internalServerError().build();
+        }
     }
 }

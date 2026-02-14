@@ -4,8 +4,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -127,9 +129,20 @@ public class FolderService {
         final List<FileEntity> files = fileRepository.findTrashFiles(userId);
         final List<TrashDTO> allTrash = new ArrayList<>();
         final Map<Long, String> fileMap = new HashMap<>();
+        final Map<Long, String> folderMap = new HashMap<>();
 
         subFolders.forEach(fo -> {
-            final String originalPath = fo.getParentFolder() != null ? fileExplorerService.resolveTrashFolderPath(fo, false) : "../";
+            String originalPath = "../";
+            if (fo.getParentFolder() != null) {
+                final FolderEntity parent = fo.getParentFolder();
+                final Long parentFolderId = parent.getId();
+                if (folderMap.containsKey(parentFolderId)) {
+                    originalPath = folderMap.get(parentFolderId);
+                } else {
+                    originalPath = fileExplorerService.resolveTrashFolderPath(fo, false);
+                    folderMap.put(parentFolderId, originalPath);
+                }
+            }
             allTrash.add(new TrashDTO(
                 fo.getId(),
                 fo.getName(),
@@ -146,7 +159,6 @@ public class FolderService {
                 final long folderId = folder.getId();
                 if (fileMap.containsKey(folderId)) {
                     originalPath = fileMap.get(folderId);
-                    System.out.println("Found cached path for: " + fi.getFileName());
                 } else {
                     originalPath = fileExplorerService.resolveTrashFolderPath(folder, true);
                     fileMap.put(folderId, originalPath);
@@ -221,15 +233,36 @@ public class FolderService {
 
     @Transactional
     public void deleteFolderForever(Long folderId, Long userId) {
-        // have to fix fk contraints
-        final FolderEntity parent = folderRepository.findTrashFolderById(folderId, userId)
-        .orElseThrow(() -> new RuntimeException("Folder not found"));
+        final List<Long> allIds = getSubFolderIds(folderId);
+        final List<FileEntity> allFiles = fileRepository.findSubFolderFiles(allIds);
+        allFiles.forEach(file -> storageService.delete(file.getStoragePath()));
+        folderRepository.deleteFolderForeverById(folderId);
+    }
 
-        fileRepository.deleteForeverByFolderId(folderId);
-        for (FolderEntity subFolder : parent.getSubFolders()) {
-            deleteFolderForever(subFolder.getId(), userId);
+    @Transactional
+    public void restoreFolder(Long folderId) {
+        final List<Long> allIdsToRestore = getSubFolderIds(folderId);
+
+        if (!allIdsToRestore.isEmpty()) {
+            folderRepository.bulkRestoreFolders(allIdsToRestore);
+            fileRepository.bulkRestoreFiles(allIdsToRestore);
+        }
+    }
+
+    // for trash
+    private List<Long> getSubFolderIds(Long folderId) {
+        final List<Long> allIdsToRestore = new ArrayList<>();
+        final Queue<Long> queue = new LinkedList<>();
+        queue.add(folderId);
+
+        while (!queue.isEmpty()) {
+            final long currentId = queue.poll();
+            allIdsToRestore.add(currentId);
+
+            final List<Long> subFolderIds = folderRepository.getSubFolderIds(currentId);
+            queue.addAll(subFolderIds);
         }
 
-        folderRepository.deleteFolderForeverById(folderId);
+        return allIdsToRestore;
     }
 }

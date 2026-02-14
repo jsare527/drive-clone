@@ -29,9 +29,28 @@ public interface FileRepository extends JpaRepository<FileEntity, Long> {
     @Query(value = "DELETE FROM files WHERE folder_id = :folderId", nativeQuery = true)
     void deleteForeverByFolderId(@Param("folderId") Long folderId);
 
+    @Modifying
+    @Query(value = "DELETE FROM files WHERE id = :fileId", nativeQuery = true)
+    void deleteFileForeverById(@Param("fileId") Long fileId);
+
     @Query("SELECT f FROM FileEntity f WHERE f.user.id = :userId AND f.folder IS NULL AND lower(f.fileName) LIKE lower(concat('%', :searchTerm, '%'))")
     List<FileEntity> rootSearchFiles(@Param("userId") Long userId, @Param("searchTerm") String searchTerm);
 
     @Query("SELECT f FROM FileEntity f WHERE f.user.id = :userId AND f.folder.id = :folderId AND lower(f.fileName) LIKE lower(concat('%', :searchTerm, '%'))")
     List<FileEntity> searchFilesByFolder(@Param("userId") Long userId, @Param("folderId") Long folderId, @Param("searchTerm") String searchTerm);
+
+    @Modifying
+    @Query(value = "UPDATE files SET deleted_at = NULL WHERE folder_id = :folderId", nativeQuery = true)
+    void restoreByFolderId(@Param("folderId") Long folderId);
+
+    @Modifying
+    @Query(value = "UPDATE files SET deleted_at = NULL WHERE folder_id IN :ids", nativeQuery = true)
+    void bulkRestoreFiles(@Param("ids") List<Long> ids);
+
+    @Modifying
+    @Query(value = "UPDATE files SET deleted_at = NULL WHERE id = :fileId", nativeQuery = true)
+    void restoreFileById(@Param("fileId") Long fileId);
+
+    @Query(value = "SELECT * FROM files WHERE folder_id IN :ids", nativeQuery = true)
+    List<FileEntity> findSubFolderFiles(@Param("ids") List<Long> ids);
 }
